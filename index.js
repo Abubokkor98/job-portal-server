@@ -1,17 +1,14 @@
-require('dotenv').config()
-const express = require('express');
-const cors = require('cors');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
-
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 app.use(cors());
 app.use(express.json());
 
 console.log(process.env.DB_USER, process.env.DB_PASS);
-
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.4nvaj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -21,7 +18,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -30,7 +27,30 @@ async function run() {
     // await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
+
+
+    // jobs related APIs
+    const jobsCollection = client.db('jobPortal').collection('jobs');
+
+    // get all job
+    app.get('/jobs', async(req,res)=>{
+        const cursor = jobsCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+
+    })
+    // get a specific job
+    app.get('/jobs/:id', async (req,res)=>{
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)};
+        const result = await jobsCollection.findOne(query);
+        res.send(result);
+    })
+
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
@@ -38,14 +58,10 @@ async function run() {
 }
 run().catch(console.dir);
 
+app.get("/", (req, res) => {
+  res.send("jobis falling from the sky!");
+});
 
-
-
-
-app.get('/',(req,res)=>{
-    res.send('jobis falling from the sky!')
-})
-
-app.listen(port,()=>{
-    console.log(`Job is waiting at port: ${port}`);
-})
+app.listen(port, () => {
+  console.log(`Job is waiting at port: ${port}`);
+});
