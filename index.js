@@ -31,34 +31,42 @@ async function run() {
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
 
-
     // jobs related APIs
-    const jobsCollection = client.db('jobPortal').collection('jobs');
-    const jobApplicationCollection = client.db('jobPortal').collection('job_applications');
+    const jobsCollection = client.db("jobPortal").collection("jobs");
+    const jobApplicationCollection = client
+      .db("jobPortal")
+      .collection("job_applications");
 
     // get all job
-    app.get('/jobs', async(req,res)=>{
-        const cursor = jobsCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
-
-    })
+    app.get("/jobs", async (req, res) => {
+      const cursor = jobsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
     // get a specific job
-    app.get('/jobs/:id', async (req,res)=>{
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)};
-        const result = await jobsCollection.findOne(query);
-        res.send(result);
-    })
+    app.get("/jobs/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await jobsCollection.findOne(query);
+      res.send(result);
+    });
 
-    // applicant 
-    app.post('/job-applications', async(req,res)=>{
-        const application = req.body;
-        const result = await jobApplicationCollection.insertOne(application);
-        res.send(result);
-    })
+    // applicant
 
+    app.get("/job-application", async (req, res) => {
+      const email = req.query.email;
+      const query = {
+        applicant_email: email,
+      };
+      const result = await jobApplicationCollection.find(query).toArray();
+      res.send(result);
+    });
 
+    app.post("/job-applications", async (req, res) => {
+      const application = req.body;
+      const result = await jobApplicationCollection.insertOne(application);
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
