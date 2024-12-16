@@ -52,13 +52,24 @@ async function run() {
     });
 
     // applicant
-
     app.get("/job-application", async (req, res) => {
       const email = req.query.email;
       const query = {
         applicant_email: email,
       };
       const result = await jobApplicationCollection.find(query).toArray();
+
+    //   fokira way to aggregate data
+    for(const application of result){
+        // console.log(application.job_id);
+        const query1 = {_id: new ObjectId(application.job_id)};
+        const job = await jobsCollection.findOne(query1);
+        if(job){
+            application.title = job.title;
+            application.company = job.company;
+            application.company_logo = job.company_logo;
+        }
+    }
       res.send(result);
     });
 
