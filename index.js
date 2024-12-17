@@ -8,8 +8,6 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 app.use(cors());
 app.use(express.json());
 
-console.log(process.env.DB_USER, process.env.DB_PASS);
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.4nvaj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -50,6 +48,12 @@ async function run() {
       const result = await jobsCollection.findOne(query);
       res.send(result);
     });
+    // create a job
+    app.post("/jobs", async (req, res) => {
+      const newJob = req.body;
+      const result = await jobsCollection.insertOne(newJob);
+      res.send(result);
+    });
 
     // applicant
     app.get("/job-application", async (req, res) => {
@@ -59,17 +63,18 @@ async function run() {
       };
       const result = await jobApplicationCollection.find(query).toArray();
 
-    //   fokira way to aggregate data
-    for(const application of result){
+      //   fokira way to aggregate data
+      for (const application of result) {
         // console.log(application.job_id);
-        const query1 = {_id: new ObjectId(application.job_id)};
+        const query1 = { _id: new ObjectId(application.job_id) };
         const job = await jobsCollection.findOne(query1);
-        if(job){
-            application.title = job.title;
-            application.company = job.company;
-            application.company_logo = job.company_logo;
+        if (job) {
+          application.title = job.title;
+          application.location = job.location;
+          application.company = job.company;
+          application.company_logo = job.company_logo;
         }
-    }
+      }
       res.send(result);
     });
 
