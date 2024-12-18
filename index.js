@@ -27,13 +27,13 @@ const verifyToken = (req, res, next) => {
   // console.log('insite verify token',req.cookies );
   const token = req?.cookies?.token;
   if (!token) {
-    return res.status(401).send({ message: "Unauthorized access" });
+    return res.status(401).send({ message: "unAuthorized access" });
   }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).send({ message: "Unauthorized access" });
+      return res.status(401).send({ message: "unAuthorized access" });
     }
-    //
+    req.user = decoded;
     next();
   });
 };
@@ -112,7 +112,9 @@ async function run() {
         applicant_email: email,
       };
 
-      // console.log('coc coc', req.cookies);
+      if(req.user.email !== req.query.email){
+        return res.status(403).send({message: "Acess Forbidden"})
+      }
       const result = await jobApplicationCollection.find(query).toArray();
 
       //   fokira way to aggregate data
