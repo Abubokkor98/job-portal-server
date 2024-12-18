@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 const app = express();
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -34,6 +35,13 @@ async function run() {
     const jobApplicationCollection = client
       .db("jobPortal")
       .collection("job_applications");
+
+      // Auth related APIs
+      app.post('/jwt',(req,res)=>{
+        const user = req.body;
+        const token = jwt.sign(user, 'secret', {expiresIn: '1h'});
+        res.send(token);
+      })
 
     // get all job
     app.get("/jobs", async (req, res) => {
@@ -84,12 +92,12 @@ async function run() {
     });
 
     // get a specific job application by id
-    app.get('/job-applications/jobs/:job_id', async (req,res)=>{
+    app.get("/job-applications/jobs/:job_id", async (req, res) => {
       const jobId = req.params.job_id;
-      const query = {job_id: jobId};
+      const query = { job_id: jobId };
       const result = await jobApplicationCollection.find(query).toArray();
       res.send(result);
-    })
+    });
 
     app.post("/job-applications", async (req, res) => {
       const application = req.body;
@@ -115,6 +123,23 @@ async function run() {
         },
       };
       const updatedResult = await jobsCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
+    // update job status
+    app.patch("/job-applications/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: data.status,
+        },
+      };
+      const result = await jobApplicationCollection.updateOne(
+        filter,
+        updatedDoc
+      );
       res.send(result);
     });
   } finally {
