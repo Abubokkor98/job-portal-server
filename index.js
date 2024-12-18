@@ -65,7 +65,7 @@ async function run() {
       .db("jobPortal")
       .collection("job_applications");
 
-    // Auth related APIs
+    // Auth related APIs (JWT)
     app.post("/jwt", (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
@@ -73,6 +73,15 @@ async function run() {
       });
       res
         .cookie("token", token, {
+          httpOnly: true,
+          secure: false,
+        })
+        .send({ success: true });
+    });
+    // clear cookie when user loggedOut
+    app.post("/jwt/logout", (req, res) => {
+      res
+        .clearCookie("token", {
           httpOnly: true,
           secure: false,
         })
@@ -112,8 +121,8 @@ async function run() {
         applicant_email: email,
       };
 
-      if(req.user.email !== req.query.email){
-        return res.status(403).send({message: "Acess Forbidden"})
+      if (req.user.email !== req.query.email) {
+        return res.status(403).send({ message: "Acess Forbidden" });
       }
       const result = await jobApplicationCollection.find(query).toArray();
 
