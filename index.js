@@ -122,6 +122,7 @@ async function run() {
         applicant_email: email,
       };
 
+      // verify the user
       if (req.user.email !== req.query.email) {
         return res.status(403).send({ message: "Acess Forbidden" });
       }
